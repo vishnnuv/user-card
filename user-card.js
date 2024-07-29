@@ -1,70 +1,79 @@
 document.addEventListener('DOMContentLoaded', () => {
     const style = document.createElement('style');
     style.textContent = `
-        body {
-            font-family: Arial, sans-serif;
+        .pfp {
+            position: relative;
             display: flex;
-            justify-content: center;
             align-items: center;
-            height: 100vh;
-            background-color: #f5f5f5;
+            color:black
         }
-        .profile-card {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            width: 300px;
-            text-align: center;
-            padding: 20px;
+        .pfp-txt h2 {
+            line-height: 0;
         }
-        .profile-card img {
-            border-radius: 50%;
-            width: 100px;
-            height: 100px;
+       .pfp-txt p{
+            line-height:0;
+       }
+        .git-link {
+            text-decoration: none;
+        }
+        .git-img{
+            border-radius: 100%;
+            width: 54px;
+            height: 54px;
+            margin-right: 12px;
         }
     `;
     document.head.appendChild(style);
 
-    const createProfileCard = (user) => {
+    const createProfileCard = (user, linkUrl) => {
+        const link = document.createElement('a');
+        link.href = linkUrl;
+        link.target = '_blank';
+        link.classList.add('git-link');
+
         const profileCard = document.createElement('div');
-        profileCard.classList.add('profile-card');
+        profileCard.classList.add('pfp');
 
         const profilePicture = document.createElement('img');
-        profilePicture.id = 'profile-picture';
+        profilePicture.classList.add('git-img');
+
+        const profileText = document.createElement('div');
+        profileText.classList.add('pfp-txt');
 
         const profileName = document.createElement('h2');
-        profileName.id = 'profile-name';
 
         const profileUsername = document.createElement('p');
-        profileUsername.id = 'profile-username';
 
+        profileText.appendChild(profileName);
+        profileText.appendChild(profileUsername);
         profileCard.appendChild(profilePicture);
-        profileCard.appendChild(profileName);
-        profileCard.appendChild(profileUsername);
+        profileCard.appendChild(profileText);
+        link.appendChild(profileCard);
 
-        return profileCard;
+        return { link, profilePicture, profileName, profileUsername };
     };
 
     const userCards = document.querySelectorAll('.user-card');
 
     userCards.forEach(userCard => {
         const username = userCard.getAttribute('data-user');
+        const linkUrl = `https://github.com/${username}`;
 
-        const profileCard = createProfileCard(username);
-        userCard.appendChild(profileCard);
+        const { link, profilePicture, profileName, profileUsername } = createProfileCard(username, linkUrl);
+        userCard.appendChild(link);
 
         const url = `https://api.github.com/users/${username}`;
 
         fetch(url)
             .then(response => response.json())
             .then(data => {
-                profileCard.querySelector('#profile-picture').src = data.avatar_url;
-                profileCard.querySelector('#profile-name').textContent = data.name || 'No Name Provided';
-                profileCard.querySelector('#profile-username').textContent = `@${data.login}`;
+                profilePicture.src = data.avatar_url;
+                profileName.textContent = data.name || 'No Name Provided';
+                profileUsername.textContent = data.login;
             })
             .catch(error => {
                 console.error('Error fetching GitHub profile:', error);
-                profileCard.querySelector('#profile-name').textContent = 'Error fetching profile';
+                profileName.textContent = 'Error fetching profile';
             });
     });
 });
